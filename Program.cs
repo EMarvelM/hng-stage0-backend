@@ -41,12 +41,16 @@ app.MapGet("/me", async () =>
     {
         HttpResponseMessage response = await client.GetAsync(url);
 
-        if (response.IsSuccessStatusCode) {
-            // JsonSerializer.Serialize(await response.Content.ReadFromJsonAsync<FactResponse>());
-            var responseObj = await response.Content.ReadFromJsonAsync<FactResponse>();
-            meResponse.Fact = responseObj.Fact;
-            meResponse.Status = "success";
-            return meResponse;
+        if (response.IsSuccessStatusCode)
+        {
+            // Safely deserialize and null-check the response
+            var responseObj = await response.Content.ReadFromJsonAsync<FactResponse?>();
+            if (responseObj?.Fact is not null)
+            {
+                meResponse.Fact = responseObj.Fact;
+                meResponse.Status = "success";
+                return meResponse;
+            }
         }
     }
     catch (HttpRequestException e)
@@ -81,7 +85,7 @@ public class User
 public class MeResponseDto
 {
     public string Status { get; set; } = "failed";
-    public User User { get; set; } = null; 
+    public User User { get; set; } = new User(); 
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public string Fact { get; set; } = string.Empty;
 }
