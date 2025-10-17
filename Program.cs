@@ -18,7 +18,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// It's common on PaaS platforms (like Railway) to terminate TLS at the proxy
+// and forward traffic to the container over HTTP. Avoid forcing HTTPS redirects
+// when not necessary to prevent redirect loops. Only enable HTTPS redirection
+// when the environment is Development or when an explicit flag is present.
+var disableHttpsRedirect = Environment.GetEnvironmentVariable("DISABLE_HTTPS_REDIRECT");
+if (!string.Equals(disableHttpsRedirect, "true", StringComparison.OrdinalIgnoreCase))
+{
+    app.UseHttpsRedirection();
+}
 
 app.MapGet("/me", async () =>
 {
@@ -67,7 +75,13 @@ app.MapGet("/me", async () =>
 .WithName("Me")
 .WithOpenApi();
 
-app.Run("http://0.0.0.0:" + (Environment.GetEnvironmentVariable("PORT") ?? "8080"));
+// Determine port/urls from environment with fallbacks. Railway supplies PORT.
+var port = Environment.GetEnvironmentVariable("PORT");
+var aspnetUrls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
+var listenPort = port ?? (aspnetUrls is not null ? new Uri(aspnetUrls.Split(';')[0]).Port.ToString() : null) ?? "8080";
+var url = $"http://0.0.0.0:{listenPort}";
+Console.WriteLine($"Starting server on {url}");
+app.Run(url);
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
