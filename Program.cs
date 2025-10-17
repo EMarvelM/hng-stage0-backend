@@ -20,11 +20,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
 app.MapGet("/me", async () =>
 {
     string Status = "failed";
@@ -68,7 +63,7 @@ app.MapGet("/me", async () =>
 .WithName("Me")
 .WithOpenApi();
 
-app.Run();
+app.Run("http://0.0.0.0:" + (Environment.GetEnvironmentVariable("PORT") ?? "8080"));
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
