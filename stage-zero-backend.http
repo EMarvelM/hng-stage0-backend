@@ -1,0 +1,6 @@
+@stage_zero_backend_HostAddress = http://localhost:5212
+
+GET {{stage_zero_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
